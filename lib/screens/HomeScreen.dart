@@ -10,7 +10,7 @@ class HomeScreen extends StatefulWidget {
 
 class _MyWidgetState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  final List pages = [WebScreen()];
+  final List pages = [BrowserPage()];
   void _navigateBottomBar(int index) {
     setState(() {
       _selectedIndex = index;
@@ -20,7 +20,7 @@ class _MyWidgetState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: WebScreen(),
+      body: BrowserPage(),
       bottomNavigationBar: SizedBox(
         child: BottomNavigationBar(
             currentIndex: _selectedIndex,

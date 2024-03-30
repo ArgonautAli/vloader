@@ -1,38 +1,135 @@
 import 'package:flutter/material.dart';
-import 'package:web_browser/web_browser.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
-class WebScreen extends StatefulWidget {
-  WebScreen({super.key});
+class BrowserPage extends StatefulWidget {
+  const BrowserPage({super.key});
 
   @override
-  State<WebScreen> createState() => _WebScreenState();
+  State<BrowserPage> createState() => _BrowserPageState();
 }
 
-class _WebScreenState extends State<WebScreen> {
-  final _controller = TextEditingController();
-  String search = "";
+class _BrowserPageState extends State<BrowserPage> {
+  late TextEditingController textEditingController;
+  late WebViewController webViewController;
+  String searchEngineUrl = "https://wwww.alihaiderkhan.com";
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    textEditingController = TextEditingController(text: searchEngineUrl);
+    webViewController = WebViewController();
+    webViewController.setJavaScriptMode(JavaScriptMode.unrestricted);
+    webViewController
+        .setNavigationDelegate(NavigationDelegate(onPageStarted: (url) {
+      textEditingController.text = url;
+      setState(() {
+        isLoading = true;
+      });
+    }, onPageFinished: (url) {
+      setState(() {
+        isLoading = false;
+      });
+    }));
+    loadUrl(textEditingController.text);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: Implement dispose
+    textEditingController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("web page"),
-      ),
-      body: Column(
-        children: [
-          TextField(
-            controller: _controller,
-          ),
-          SizedBox(height: 16),
-          Expanded(
-            child: SafeArea(
-              child: Browser(
-                initialUriString: 'https://flutter.dev/',
-              ),
+    return SafeArea(
+        child: WillPopScope(
+            child: Scaffold(
+              body: Column(children: [
+                _buildTopWidget(),
+                _buildLoadingWidget(),
+                Expanded(child: _buildWebWidget()),
+                _buildBottomWidget()
+              ]),
             ),
-          ),
-        ],
+            onWillPop: onWillPop));
+  }
+
+  Future<bool> onWillPop() {
+    return Future.value(false);
+  }
+
+  loadUrl(String value) {
+    Uri uri = Uri.parse(value);
+    if (!uri.isAbsolute) {
+      uri = Uri.parse("${searchEngineUrl}search?q=$value");
+    }
+    webViewController.loadRequest(uri);
+  }
+
+  _buildTopWidget() {
+    return Padding(
+      padding: const EdgeInsets.all(5.0),
+      child: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+            border: Border.all(),
+            borderRadius: BorderRadius.all(Radius.circular(32))),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            IconButton(
+                onPressed: () {
+                  loadUrl(searchEngineUrl);
+                },
+                icon: const Icon(Icons.home)),
+            Expanded(
+                child: TextField(
+                    controller: textEditingController,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: "Search or type web address",
+                    ),
+                    onSubmitted: (value) {
+                      loadUrl(value);
+                    })),
+            IconButton(
+                onPressed: () {
+                  textEditingController.clear();
+                },
+                icon: const Icon(Icons.cancel))
+          ],
+        ),
       ),
+    );
+  }
+
+  _buildLoadingWidget() {
+    return Container(
+        height: 2,
+        color: Colors.grey,
+        child: isLoading ? const LinearProgressIndicator() : Container());
+  }
+
+  _buildWebWidget() {
+    return WebViewWidget(controller: webViewController);
+  }
+
+  _buildBottomWidget() {
+    return BottomNavigationBar(
+      onTap: (value) {},
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.arrow_back), label: "Back"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.arrow_forward), label: "Forward"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.replay_outlined), label: "Reload"),
+      ],
+      showSelectedLabels: false,
+      showUnselectedLabels: false,
+      unselectedItemColor: Colors.black54,
+      selectedItemColor: Colors.black54,
     );
   }
 }
