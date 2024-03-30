@@ -11,8 +11,9 @@ class BrowserPage extends StatefulWidget {
 class _BrowserPageState extends State<BrowserPage> {
   late TextEditingController textEditingController;
   late WebViewController webViewController;
-  String searchEngineUrl = "https://wwww.alihaiderkhan.com";
+  String searchEngineUrl = "https://alihaiderkhan.com";
   bool isLoading = false;
+  final List actions = ["back", "forward", "reload"];
 
   @override
   void initState() {
@@ -118,7 +119,22 @@ class _BrowserPageState extends State<BrowserPage> {
 
   _buildBottomWidget() {
     return BottomNavigationBar(
-      onTap: (value) {},
+      onTap: (value) async {
+        print("value:${actions[value]}");
+        if (actions[value] == "back") {
+          if (await webViewController.canGoBack()) {
+            await webViewController.goBack();
+          }
+        }
+        if (actions[value] == "forward") {
+          if (await webViewController.canGoForward()) {
+            await webViewController.goForward();
+          }
+        }
+        if (actions[value] == "reload") {
+          await webViewController.reload();
+        }
+      },
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.arrow_back), label: "Back"),
         BottomNavigationBarItem(
