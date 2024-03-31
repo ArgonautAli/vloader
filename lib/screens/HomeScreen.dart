@@ -27,7 +27,7 @@ class _MyWidgetState extends State<HomeScreen> {
             onTap: _navigateBottomBar,
             items: [
               BottomNavigationBarItem(
-                  icon: Icon(Icons.tab, size: 32), label: "Tabs"),
+                  icon: Icon(Icons.play_arrow, size: 32), label: "Video"),
               BottomNavigationBarItem(
                   icon: Icon(Icons.download, size: 32), label: "Downloads"),
             ]),

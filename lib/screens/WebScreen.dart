@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter_file_downloader/flutter_file_downloader.dart';
+import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 class BrowserPage extends StatefulWidget {
   const BrowserPage({super.key});
@@ -42,17 +44,50 @@ class _BrowserPageState extends State<BrowserPage> {
     super.dispose();
   }
 
+  void _downloadVideo(String url) async {
+    var ytExplode = YoutubeExplode();
+    var video = await ytExplode.videos.get(url);
+
+    var manifest = await ytExplode.videos.streamsClient.getManifest(video);
+
+    var streamInfo = manifest.audioOnly.first;
+    var videoStream = manifest.video.first;
+
+    var audioStream = ytExplode.videos.streamsClient.get(streamInfo);
+    var videoFile = await ytExplode.videos.streamsClient.get(videoStream);
+    print('videoFile:${videoFile}');
+    // Implement file saving logic here
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: WillPopScope(
             child: Scaffold(
-              body: Column(children: [
-                _buildTopWidget(),
-                _buildLoadingWidget(),
-                Expanded(child: _buildWebWidget()),
-                _buildBottomWidget()
-              ]),
+              body: Stack(
+                children: [
+                  Column(children: [
+                    _buildTopWidget(),
+                    _buildLoadingWidget(),
+                    Expanded(child: _buildWebWidget()),
+                    _buildBottomWidget(),
+                  ]),
+                  Positioned(
+                      bottom: 60.0,
+                      right: 16.0,
+                      child: FloatingActionButton(
+                        onPressed: () {
+                          _downloadVideo(searchEngineUrl);
+                        },
+                        backgroundColor: Colors
+                            .purple, // Use custom color similar to YouTube's red
+                        child: Icon(
+                          Icons.download,
+                          color: Colors.white,
+                        ),
+                      ))
+                ],
+              ),
             ),
             onWillPop: onWillPop));
   }
@@ -67,6 +102,9 @@ class _BrowserPageState extends State<BrowserPage> {
       uri = Uri.parse("${searchEngineUrl}search?q=$value");
     }
     webViewController.loadRequest(uri);
+    setState(() {
+      searchEngineUrl = value;
+    });
   }
 
   _buildTopWidget() {
@@ -99,7 +137,7 @@ class _BrowserPageState extends State<BrowserPage> {
                 onPressed: () {
                   textEditingController.clear();
                 },
-                icon: const Icon(Icons.cancel))
+                icon: const Icon(Icons.cancel)),
           ],
         ),
       ),
