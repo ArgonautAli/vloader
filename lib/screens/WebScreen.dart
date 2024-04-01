@@ -13,7 +13,8 @@ class BrowserPage extends StatefulWidget {
 class _BrowserPageState extends State<BrowserPage> {
   late TextEditingController textEditingController;
   late WebViewController webViewController;
-  String searchEngineUrl = "https://alihaiderkhan.com";
+  String searchEngineUrl = "https://google.com";
+  var uTubeUrl;
   bool isLoading = false;
   final List actions = ["back", "forward", "reload"];
 
@@ -44,9 +45,14 @@ class _BrowserPageState extends State<BrowserPage> {
     super.dispose();
   }
 
-  void _downloadVideo(String url) async {
+  void _downloadVideo() async {
+    var url = await webViewController.currentUrl();
     var ytExplode = YoutubeExplode();
+    debugPrint('videourl:${url}');
+
     var video = await ytExplode.videos.get(url);
+
+    debugPrint('video:${video}');
 
     var manifest = await ytExplode.videos.streamsClient.getManifest(video);
 
@@ -55,7 +61,7 @@ class _BrowserPageState extends State<BrowserPage> {
 
     var audioStream = ytExplode.videos.streamsClient.get(streamInfo);
     var videoFile = await ytExplode.videos.streamsClient.get(videoStream);
-    print('videoFile:${videoFile}');
+    debugPrint('videoFile:${videoFile}');
     // Implement file saving logic here
   }
 
@@ -77,7 +83,7 @@ class _BrowserPageState extends State<BrowserPage> {
                       right: 16.0,
                       child: FloatingActionButton(
                         onPressed: () {
-                          _downloadVideo(searchEngineUrl);
+                          _downloadVideo();
                         },
                         backgroundColor: Colors
                             .purple, // Use custom color similar to YouTube's red
@@ -98,12 +104,13 @@ class _BrowserPageState extends State<BrowserPage> {
 
   loadUrl(String value) {
     Uri uri = Uri.parse(value);
+    print('uri:${uri} ');
     if (!uri.isAbsolute) {
-      uri = Uri.parse("${searchEngineUrl}search?q=$value");
+      uri = Uri.parse("${searchEngineUrl}/search?q=$value");
     }
     webViewController.loadRequest(uri);
     setState(() {
-      searchEngineUrl = value;
+      uTubeUrl = uri;
     });
   }
 
